@@ -81,7 +81,7 @@
     </nav>
 
     <div class="content">
-        <h1>Welcome, Student!</h1>
+        <h1>Welcome, Minsuans!</h1>
         <p>This is your student dashboard.</p>
     </div>
 

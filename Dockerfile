@@ -26,4 +26,3 @@ RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot ${APACHE_DOCUMENT_ROOT}|g'
  
 EXPOSE 
 
-//search lagn muna ako, wait

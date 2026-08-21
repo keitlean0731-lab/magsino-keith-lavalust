@@ -18,7 +18,7 @@
         }
 
         nav {
-            background: #2563eb;
+            background: #0d9636;
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
@@ -46,7 +46,7 @@
         }
 
         .nav-links a:hover {
-            background: #1d4ed8;
+            background: #0d9636;
         }
 
         .content {
@@ -72,7 +72,7 @@
             padding: 15px;
             background: #f4f6f8;
             border-radius: 8px;
-            border-left: 4px solid #2563eb;
+            border-left: 4px solid #0d9636;
         }
 
         .profile-item strong {

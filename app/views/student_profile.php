@@ -93,7 +93,7 @@
         <div class="logo">Student Portal</div>
 
         <div class="nav-links">
-            <a href="<?=site_url('student');?>">Home</a>
+            <a href="/student/users">Users</a>
             <a href="<?=site_url('student/profile');?>">Profile</a>
         </div>
     </nav>

@@ -199,7 +199,7 @@
 <body>
 
     <nav>
-        <div class="logo">Student Portal</div>
+        <div class="logo">SHOP</div>
         <div class="nav-links">
             <a href="<?= site_url('/logout'); ?>">Logout</a>
         </div>

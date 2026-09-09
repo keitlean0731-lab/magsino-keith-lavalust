@@ -123,7 +123,7 @@
 <body>
 
     <nav>
-        <div class="logo">Shop</div>
+        <div class="logo">SHOP</div>
     </nav>
 
     <div class="content">

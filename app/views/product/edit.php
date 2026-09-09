@@ -167,7 +167,7 @@
 <body>
 
     <nav>
-        <div class="logo">Student Portal</div>
+        <div class="logo">SHOP</div>
         <div class="nav-links">
             <a href="<?= site_url('/product/display'); ?>">Products</a>
             <a href="<?= site_url('student/profile'); ?>">Profile</a>

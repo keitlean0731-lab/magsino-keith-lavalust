@@ -123,7 +123,7 @@
 <body>
 
     <nav>
-        <div class="logo">Student Portal</div>
+        <div class="logo">Shop</div>
     </nav>
 
     <div class="content">

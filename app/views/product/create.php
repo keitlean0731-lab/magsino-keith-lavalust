@@ -148,7 +148,7 @@
 
 <body>
 
-    <nav>
+    <nav> 
         <div class="logo">SHOP</div>
         <div class="nav-links">
             <a href="<?= site_url('/product/display'); ?>">Products</a>

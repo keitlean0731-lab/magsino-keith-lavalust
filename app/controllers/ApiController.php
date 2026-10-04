@@ -16,6 +16,11 @@ class ApiController extends Controller
         $input    = $this->api->body();
         $username = $input['username'] ?? '';
         $password = $input['password'] ?? '';
+        $requested_role = $input['role'] ?? 'user';
+
+        if (!in_array($requested_role, ['user', 'admin'], true)) {
+            $this->api->respond_error('Please select a valid role', 422);
+        }
 
         $stmt = $this->db->raw(
             'SELECT * FROM users WHERE username = ? AND is_active = 1 LIMIT 1',
@@ -24,6 +29,10 @@ class ApiController extends Controller
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
+            if ($user['role'] !== $requested_role) {
+                $this->api->respond_error('This account is not authorized for the selected role', 403);
+            }
+
             $tokens = $this->api->issue_tokens([
                 'id'   => $user['id'],
                 'role' => $user['role'],

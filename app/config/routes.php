@@ -50,6 +50,16 @@ $router->get('/logout', 'AuthController::logout');
 
 // API authentication
 $router->group(['prefix' => '/api'], function ($router) {
+    // Browsers send OPTIONS before JSON requests from the Vercel frontend.
+    $router->options('/login', 'ApiController::preflight');
+    $router->options('/register', 'ApiController::preflight');
+    $router->options('/logout', 'ApiController::preflight');
+    $router->options('/refresh', 'ApiController::preflight');
+    $router->options('/profile', 'ApiController::preflight');
+    $router->options('/users', 'ApiController::preflight');
+    $router->options('/users/{id}', 'ApiController::preflight');
+    $router->options('/products', 'ApiController::preflight');
+    $router->options('/products/{id}', 'ApiController::preflight');
     $router->post('/login', 'ApiController::login');
     $router->post('/register', 'ApiController::register');
     $router->post('/logout', 'ApiController::logout');

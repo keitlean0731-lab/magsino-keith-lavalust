@@ -9,6 +9,11 @@ class ApiController extends Controller
         $this->call->library('api');
     }
 
+    public function preflight()
+    {
+        // The API library handles the CORS headers and exits with 204.
+    }
+
     public function login()
     {
         $this->api->require_method('POST');

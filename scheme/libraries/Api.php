@@ -407,15 +407,16 @@ class Api
      * @param array $payload
      * @return array<string,mixed>|null
      */
-    public function encode_jwt($payload)
+    public function encode_jwt($payload, $expiration = null)
     {
         $header = ['alg' => 'HS256', 'typ' => 'JWT'];
         $headerEnc = $this->base64UrlEncode(json_encode($header));
 
         $now = time();
+        $expiration = $expiration ?? $this->payload_token_expiration;
         $payload = array_merge([
             'iat' => $now,
-            'exp' => $now + $this->payload_token_expiration,
+            'exp' => $now + $expiration,
             'iss' => $this->jwt_issuer,
             'aud' => $this->jwt_audience,
             'jti' => bin2hex(random_bytes(16))
@@ -462,7 +463,8 @@ class Api
         if (!$payload) return null;
 
         if (!isset($payload['sub'], $payload['exp'], $payload['iat'])) return null;
-        if ($payload['exp'] < time() || ($payload['iat'] ?? 0) > time()) return null;
+        if (!is_scalar($payload['sub']) || !is_numeric($payload['exp']) || !is_numeric($payload['iat'])) return null;
+        if ($payload['exp'] <= time() || $payload['iat'] > time()) return null;
         if (($payload['iss'] ?? '') !== $this->jwt_issuer || ($payload['aud'] ?? '') !== $this->jwt_audience) return null;
 
         return $payload;
@@ -496,7 +498,7 @@ class Api
         $token = $this->get_bearer_token();
         $payload = $this->validate_jwt($token ?? '');
 
-        if (!$payload) {
+        if (!$payload || ($payload['type'] ?? 'access') !== 'access') {
             $this->respond_error('Unauthorized', 401);
         }
 
@@ -522,6 +524,7 @@ class Api
             'sub'   => $user_id,
             'role'  => $user_data['role'] ?? 'user',
             'scopes'=> $scopes,
+            'type'  => 'access',
         ];
 
         $refresh_payload = [
@@ -530,8 +533,8 @@ class Api
             'jti'  => bin2hex(random_bytes(16)),
         ];
 
-        $access_token  = $this->encode_jwt($access_payload);
-        $refresh_token = $this->encode_jwt($refresh_payload); // Raw for client
+        $access_token  = $this->encode_jwt($access_payload, $this->payload_token_expiration);
+        $refresh_token = $this->encode_jwt($refresh_payload, $this->refresh_token_expiration); // Raw for client
 
         // Hash for DB storage (secure + prevents exposure on DB breach)
         $hashed_refresh = hash_hmac('sha256', (string) $refresh_token, $this->refresh_token_key);
@@ -563,7 +566,11 @@ class Api
     public function refresh_access_token($refresh_token)
     {
         $payload = $this->validate_jwt($refresh_token);
-        if (!$payload || ($payload['type'] ?? '') !== 'refresh') {
+        if (
+            !$payload ||
+            ($payload['type'] ?? '') !== 'refresh' ||
+            empty($payload['jti'])
+        ) {
             $this->respond_error('Invalid refresh token', 403);
         }
 
@@ -571,8 +578,8 @@ class Api
 
         $stmt = $this->_lava->db->raw(
             "SELECT * FROM {$this->refresh_token_table} 
-             WHERE token = ? AND expires_at > NOW() LIMIT 1",
-            [$hashed]
+             WHERE token = ? AND jti = ? AND expires_at > NOW() LIMIT 1",
+            [$hashed, $payload['jti'] ?? '']
         );
         $found = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -583,7 +590,19 @@ class Api
         // Revoke old + rotate (best practice)
         $this->revoke_refresh_token($refresh_token);
 
-        $new_tokens = $this->issue_tokens(['id' => $payload['sub']]);
+        $user = $this->_lava->db->raw(
+            "SELECT id, role, is_active FROM users WHERE id = ? LIMIT 1",
+            [$payload['sub']]
+        )->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user || !(int) $user['is_active']) {
+            $this->respond_error('User account is inactive or unavailable', 403);
+        }
+
+        $new_tokens = $this->issue_tokens([
+            'id'   => $user['id'],
+            'role' => $user['role'],
+        ]);
 
         $this->respond([
             'message' => 'Tokens refreshed successfully',

@@ -215,6 +215,39 @@ Route definition:
 $router->get('/api/users', 'Api::users');
 ```
 
+### JWT API authentication
+
+Set these values in the project root `.env` file before calling the API:
+
+```dotenv
+JWT_SECRET=replace-with-a-random-value-at-least-32-characters
+REFRESH_TOKEN_KEY=replace-with-a-different-random-value-at-least-32-characters
+CORS_ALLOWED_ORIGIN=http://localhost:3000
+```
+
+The API endpoints are available under `/api`:
+
+| Method | Endpoint | Authentication |
+| --- | --- | --- |
+| POST | `/api/register` | None |
+| POST | `/api/login` | None |
+| POST | `/api/refresh` | Refresh token in JSON body |
+| POST | `/api/logout` | Access token + refresh token |
+| GET | `/api/profile` | `Authorization: Bearer <access_token>` |
+| GET | `/api/users` | Access token |
+
+Login returns an `access_token`, a `refresh_token`, `expires_in`, and
+`token_type`. Store the refresh token securely and send the access token with
+each protected request:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+When the access token expires, send the refresh token as JSON to
+`POST /api/refresh`. Refresh tokens are rotated: the old token is revoked and
+the response contains a new access/refresh token pair.
+
 ---
 
 ## Philosophy

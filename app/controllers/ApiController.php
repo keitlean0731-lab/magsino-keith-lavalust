@@ -19,7 +19,7 @@ class ApiController extends Controller
         $this->api->require_method('POST');
         $this->api->rate_limit('api-login', 10, 60);
         $input    = $this->api->body();
-        $username = $input['username'] ?? '';
+        $email = trim($input['email'] ?? '');
         $password = $input['password'] ?? '';
         $requested_role = $input['role'] ?? 'user';
 
@@ -28,8 +28,8 @@ class ApiController extends Controller
         }
 
         $stmt = $this->db->raw(
-            'SELECT * FROM users WHERE username = ? AND is_active = 1 LIMIT 1',
-            [$username]
+            'SELECT * FROM users WHERE email = ? AND is_active = 1 LIMIT 1',
+            [$email]
         );
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

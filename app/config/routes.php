@@ -75,7 +75,7 @@ $router->group(['prefix' => '/api'], function ($router) {
     $router->delete('/products/{id}', 'ApiController::product_delete');
 });
 
-// migration
+// migrations
 $router->get('/migration/create/{migration_class}', 'MigrationController::create_migration');
 $router->get('/migration/migrate', 'MigrationController::migrate');
 $router->get('/migration/rollback', 'MigrationController::rollback');

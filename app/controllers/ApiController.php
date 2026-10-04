@@ -33,9 +33,22 @@ class ApiController extends Controller
         );
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && password_verify($password, $user['password'])) {
+        $password_matches = $user && (
+            password_verify($password, $user['password']) ||
+            hash_equals((string) $user['password'], (string) $password)
+        );
+
+        if ($password_matches) {
             if ($user['role'] !== $requested_role) {
                 $this->api->respond_error('This account is not authorized for the selected role', 403);
+            }
+
+            // Upgrade legacy plain-text credentials after a successful login.
+            if (!password_get_info($user['password'])['algo']) {
+                $this->db->raw(
+                    'UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?',
+                    [password_hash($password, PASSWORD_DEFAULT), $user['id']]
+                );
             }
 
             $tokens = $this->api->issue_tokens([
